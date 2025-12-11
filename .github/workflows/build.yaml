@@ -1,21 +1,16 @@
-name: CI/CD Sumot
+name: Release Sumot
 
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -26,21 +21,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Electron app
+      - name: Build Electron (win-unpacked only)
         run: npm run dist
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create sumot.zip
+        run: Compress-Archive -Path dist/win-unpacked -DestinationPath dist/sumot.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sumot-${{ matrix.os }}
-          path: dist/*
-          retention-days: 7
-
+          name: sumot
+          path: dist/sumot.zip
 
   release:
-    name: Publish Release
     needs: build
     runs-on: ubuntu-latest
 
@@ -50,7 +43,7 @@ jobs:
         with:
           path: artifacts
 
-      - name: Display downloaded files
+      - name: Display artifacts
         run: ls -R artifacts
 
       - name: Create GitHub Release
@@ -58,6 +51,6 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: SUMOT ${{ github.ref_name }}
-          files: artifacts/**
+          files: artifacts/**/sumot.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

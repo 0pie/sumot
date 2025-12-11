@@ -5,10 +5,11 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "electron-builder --win dir",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "sql.js": "^1.9.0"
+    "sql.js": "^1.13.0"
   },
   "devDependencies": {
     "electron": "32.2.0",
@@ -17,7 +18,7 @@
   "build": {
     "appId": "com.0pie.sumot",
     "productName": "Sumot",
-    "publish": [],
+
     "files": [
       "src/**/*",
       "assets/**/*",
@@ -25,17 +26,14 @@
       "preload.js",
       "package.json"
     ],
+
     "win": {
-      "target": "nsis",
-      "artifactName": "Sumot-${version}.exe"
-    },
-    "linux": {
-      "target": "AppImage",
-      "artifactName": "Sumot-${version}.AppImage"
-    },
-    "mac": {
-      "target": "dmg",
-      "artifactName": "Sumot-${version}.dmg"
+      "target": [
+        {
+          "target": "dir",
+          "arch": "x64"
+        }
+      ]
     }
   }
 }
