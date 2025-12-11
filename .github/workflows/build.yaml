@@ -1,4 +1,4 @@
-name: Build Electron App
+name: CI/CD Sumot
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -26,16 +26,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Electron App
+      - name: Build Electron app
         run: npm run dist
 
-      - name: Upload built files
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{
-            matrix.os
-          }}
+          name: sumot-${{ matrix.os }}
           path: dist/*
+          retention-days: 7
 
 
   release:
@@ -47,13 +46,16 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./artifacts
+          path: artifacts
 
-      - name: Create Release
+      - name: Display downloaded files
+        run: ls -R artifacts
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: artifacts/**/*
-
+          name: SUMOT ${{ github.ref_name }}
+          files: artifacts/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
