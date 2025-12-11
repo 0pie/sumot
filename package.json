@@ -17,7 +17,7 @@
   "build": {
     "appId": "com.0pie.sumot",
     "productName": "Sumot",
-    "publish": "never",
+    "publish": [],
     "files": [
       "src/**/*",
       "assets/**/*",
