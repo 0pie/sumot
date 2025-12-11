@@ -1,25 +1,15 @@
 {
   "name": "sumot",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "main": "main.js",
   "private": true,
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder"
   },
-  "dependencies": {
-    "electron": "^33.0.0",
-    "sqlite3": "^5.1.7"
-  },
-  "devDependencies": {
-    "electron-builder": "^24.13.3"
-  },
   "build": {
-    "appId": "com.sumot.game",
-    "productName": "SUMOT",
-    "directories": {
-      "output": "dist"
-    },
+    "appId": "com.0pie.sumot",
+    "productName": "Sumot",
     "files": [
       "src/**/*",
       "assets/**/*",
@@ -28,13 +18,23 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "artifactName": "Sumot-${version}.exe"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "artifactName": "Sumot-${version}.AppImage"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "artifactName": "Sumot-${version}.dmg"
     }
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "electron": "^39.2.6",
+    "electron-builder": "^24.13.3"
   }
 }
