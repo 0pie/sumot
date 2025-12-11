@@ -1,49 +1,49 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
+const initSqlJs = require('sql.js');
 
+let SQL = null;
 let db = null;
+let dbPath = null;
 
-function initDatabase() {
-  const dbPath = path.join(app.getPath('userData'), 'sumot.db');
+function saveDb() {
+  const data = db.export();
+  fs.writeFileSync(dbPath, Buffer.from(data));
+}
 
-  db = new sqlite3.Database(dbPath);
+async function initDatabase() {
+  dbPath = path.join(app.getPath('userData'), 'sumot.sqlite');
 
-  db.serialize(() => {
+  SQL = await initSqlJs();
+
+  if (fs.existsSync(dbPath)) {
+    const buf = fs.readFileSync(dbPath);
+    db = new SQL.Database(buf);
+  } else {
+    db = new SQL.Database();
     db.run(`
-      CREATE TABLE IF NOT EXISTS game_info (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
+      CREATE TABLE game_info (
+        id INTEGER PRIMARY KEY,
         counter INTEGER NOT NULL
-      )
+      );
     `);
-
-    db.run(`
-      INSERT OR IGNORE INTO game_info (id, counter)
-      VALUES (1, 0)
-    `);
-  });
+    db.run(`INSERT INTO game_info (id, counter) VALUES (1, 0);`);
+    saveDb();
+  }
 }
 
 ipcMain.handle("get-game-number", () => {
-  return new Promise((resolve, reject) => {
-    db.get("SELECT counter FROM game_info WHERE id = 1", (err, row) => {
-      if (err) reject(err);
-      else resolve(row.counter);
-    });
-  });
+  const res = db.exec("SELECT counter FROM game_info WHERE id = 1");
+  return res?.[0]?.values?.[0]?.[0] ?? 0;
 });
 
 ipcMain.handle("increment-game-number", () => {
-  return new Promise((resolve, reject) => {
-    db.run("UPDATE game_info SET counter = counter + 1 WHERE id = 1", err => {
-      if (err) reject(err);
+  db.run("UPDATE game_info SET counter = counter + 1 WHERE id = 1");
+  saveDb();
 
-      db.get("SELECT counter FROM game_info WHERE id = 1", (err2, row) => {
-        if (err2) reject(err2);
-        else resolve(row.counter);
-      });
-    });
-  });
+  const res = db.exec("SELECT counter FROM game_info WHERE id = 1");
+  return res[0].values[0][0];
 });
 
 function createWindow() {
@@ -60,8 +60,8 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
 }
 
-app.whenReady().then(() => {
-  initDatabase();
+app.whenReady().then(async () => {
+  await initDatabase();
   createWindow();
 
   app.on('activate', () => {
