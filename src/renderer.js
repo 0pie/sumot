@@ -202,7 +202,7 @@ async function submitAttempt() {
     const word = player.currentWord().toLowerCase();
 
     if (!WORD_SET.has(word)) {
-        showError('Invalid word');
+        showError('Mot Incorrect');
 
         const row = gridElement.children[player.currentRow];
         row.classList.remove('shake');
