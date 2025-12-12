@@ -1,3 +1,4 @@
+const { fetchDefinitionFromDicolink } = require("./src/definition.js"); 
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -46,10 +47,14 @@ ipcMain.handle("increment-game-number", () => {
   return res[0].values[0][0];
 });
 
+ipcMain.handle("get-definition", async (event, word) => {
+    return await fetchDefinitionFromDicolink(word);
+});
+
 function createWindow() {
   const win = new BrowserWindow({
-    width: 900,
-    height: 900,
+    width: 1920,
+    height: 1080,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

@@ -40,9 +40,9 @@ async function initGame() {
     buildGrid();
     refreshGrid();
 
-    if (debugElement) {
-        debugElement.textContent = `DEBUG: ${SECRET_WORD}`;
-    }
+//    if (debugElement) {
+//        debugElement.textContent = `DEBUG: ${SECRET_WORD}`;
+//    }
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -191,7 +191,7 @@ function updateKeyboard(word, states) {
     }
 }
 
-function submitAttempt() {
+async function submitAttempt() {
     if (gameOver) return;
 
     if (!player.isRowComplete()) {
@@ -223,17 +223,28 @@ function submitAttempt() {
     if (word === SECRET_WORD) {
         gameOver = true;
         player.wins++;
-        showShareButton();
-        showNewGameButton();
 
+        waitForKeyboardUpdate().then(async () => {
+            const def = await window.sumot.getDefinition(SECRET_WORD);
+            if (def) showDefinitionBox(SECRET_WORD, def);
+
+            showShareButton();
+            showNewGameButton();
+        });
         return;
     }
 
     if (player.currentRow >= MAX_ROWS) {
         gameOver = true;
         player.losses++;
-        showError(`Lost: ${SECRET_WORD}`);
-        showNewGameButton();
+
+        waitForKeyboardUpdate().then(async () => {
+            const def = await window.sumot.getDefinition(SECRET_WORD);
+            if (def) showDefinitionBox(SECRET_WORD, def);
+
+            showError(`Perdu: ${SECRET_WORD}`);
+            showNewGameButton();
+        });
     }
 }
 
@@ -317,6 +328,12 @@ async function newGame() {
     shareElement.classList.add("hidden");
     newGameElement.classList.add("hidden");
 
+    const box = document.getElementById("definition-box");
+    if (box) {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+    }
+
     await initGame();
     buildKeyboard();
     refreshGrid();
@@ -331,6 +348,32 @@ function showNewGameButton() {
     document.getElementById("newgame-btn").onclick = () => {
         newGame();
     };
+}
+
+function decodeHtmlEntities(str) {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = str;
+    return txt.value;
+}
+
+function waitForKeyboardUpdate() {
+    const delay = WORD_SIZE * 250 + 100;
+    return new Promise(resolve => setTimeout(resolve, delay));
+}
+
+function showDefinitionBox(word, definition) {
+    const box = document.getElementById("definition-box");
+    if (!box) return;
+    
+    const title = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    const cleanDef = decodeHtmlEntities(definition);
+
+    box.innerHTML = `
+        <h2>${title}</h2>
+        <p>${cleanDef}</p>
+    `;
+
+    box.classList.remove("hidden");
 }
 
 window.addEventListener('keydown', (e) => {

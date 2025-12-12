@@ -1,3 +1,8 @@
+"""
+wordScrapper.py:
+Script python permettant de créer une wordlist de tous les mots de la langue française entre 3 et 10 caractères.
+"""
+
 import requests
 from bs4 import BeautifulSoup
 import json
